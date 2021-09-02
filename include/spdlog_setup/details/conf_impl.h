@@ -178,6 +178,7 @@ static constexpr auto BLOCK = "block";
 static constexpr auto CREATE_PARENT_DIR = "create_parent_dir";
 static constexpr auto FILENAME = "filename";
 static constexpr auto GLOBAL_PATTERN = "global_pattern";
+static constexpr auto DEFAULT_LOGGER = "default_logger";
 static constexpr auto IDENT = "ident";
 static constexpr auto LEVEL = "level";
 static constexpr auto FLUSH_LEVEL = "flush_level";
@@ -1448,6 +1449,27 @@ inline void setup_loggers(
     }
 }
 
+inline void
+setup_default_logger(const std::shared_ptr<cpptoml::table> &config) {
+    using names::DEFAULT_LOGGER;
+
+    using fmt::format;
+
+    using std::string;
+
+    const auto default_logger_name_opt =
+        value_from_table_opt<string>(config, DEFAULT_LOGGER);
+    if (default_logger_name_opt) {
+        auto select_default_logger = spdlog::get(*default_logger_name_opt);
+        if (select_default_logger) {
+            spdlog::set_default_logger(select_default_logger);
+        } else {
+            throw setup_error(format(
+                "Default logger {} not found", *default_logger_name_opt));
+        }
+    }
+}
+
 inline void setup(const std::shared_ptr<cpptoml::table> &config) {
     // set up sinks
     const auto sinks_map = setup_sinks(config);
@@ -1460,6 +1482,9 @@ inline void setup(const std::shared_ptr<cpptoml::table> &config) {
 
     // set up loggers, setting the respective sinks and patterns
     setup_loggers(config, sinks_map, patterns_map, thread_pools_map);
+
+    // set up default logger
+    setup_default_logger(config);
 }
 } // namespace details
 } // namespace spdlog_setup
