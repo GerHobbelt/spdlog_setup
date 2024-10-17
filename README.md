@@ -395,7 +395,7 @@ level = "trace"
 #include <iostream>
 #include <string>
 
-int main() {
+int main(void) {
     try {
         // spdlog_setup::setup_error thrown if file not found
         spdlog_setup::from_file("log_conf.toml");
